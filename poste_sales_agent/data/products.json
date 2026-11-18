@@ -1,0 +1,122 @@
+{
+  "_note": "Illustrative catalog for call planning. Product names refer to the Poste Italiane offer; conditions, rates and eligibility must be checked against the official, current product documentation before any call.",
+  "products": [
+    {
+      "id": "conto_bancoposta",
+      "name": "Conto BancoPosta",
+      "family": "banking",
+      "priority": 1.0,
+      "requires_qualified_advisor": false,
+      "pitch": "Un conto corrente completo, gestibile dall'app BancoPosta e in oltre 12.000 uffici postali.",
+      "talking_points": [
+        "Accredito di stipendio o pensione",
+        "Carta di debito e app BancoPosta inclusi",
+        "Operatività anche allo sportello dell'ufficio postale vicino a casa"
+      ]
+    },
+    {
+      "id": "postepay_evolution",
+      "name": "Postepay Evolution",
+      "family": "payments",
+      "priority": 0.8,
+      "requires_qualified_advisor": false,
+      "pitch": "Carta prepagata con IBAN, ideale per pagamenti online, bonifici e accredito dello stipendio.",
+      "talking_points": [
+        "IBAN per ricevere e inviare bonifici",
+        "Pagamenti online e contactless, gestione dall'app Postepay",
+        "Programma sconti e cashback dedicato"
+      ]
+    },
+    {
+      "id": "libretto_smart",
+      "name": "Libretto Smart",
+      "family": "savings",
+      "priority": 0.9,
+      "requires_qualified_advisor": false,
+      "pitch": "Libretto di risparmio postale nominativo, per mettere da parte la liquidità in modo semplice.",
+      "talking_points": [
+        "Risparmio postale emesso da Cassa Depositi e Prestiti e garantito dallo Stato italiano",
+        "Nessun costo di apertura e gestione",
+        "Possibilità di offerte Supersmart a tasso promozionale (verificare offerte attive)"
+      ]
+    },
+    {
+      "id": "buoni_fruttiferi",
+      "name": "Buoni Fruttiferi Postali",
+      "family": "savings",
+      "priority": 1.0,
+      "requires_qualified_advisor": false,
+      "pitch": "Buoni Fruttiferi Postali per far crescere i risparmi su orizzonti diversi, anche a favore dei figli minori.",
+      "talking_points": [
+        "Emessi da Cassa Depositi e Prestiti e garantiti dallo Stato italiano",
+        "Esenti da costi di sottoscrizione e rimborso (salvo oneri fiscali)",
+        "Buono dedicato ai minori per costruire un capitale per il futuro dei figli"
+      ]
+    },
+    {
+      "id": "polizza_vita_investimento",
+      "name": "Polizza Poste Vita (investimento)",
+      "family": "investment_insurance",
+      "priority": 1.2,
+      "requires_qualified_advisor": true,
+      "pitch": "Soluzione assicurativa di investimento Poste Vita per diversificare i risparmi a medio-lungo termine.",
+      "talking_points": [
+        "Proposta da valutare con un consulente in ufficio postale (profilatura obbligatoria)",
+        "Orizzonte temporale medio-lungo",
+        "Fissare un appuntamento, non concludere al telefono"
+      ]
+    },
+    {
+      "id": "poste_vivere_protetti",
+      "name": "Poste Vivere Protetti (casa e salute)",
+      "family": "protection_insurance",
+      "priority": 1.1,
+      "requires_qualified_advisor": true,
+      "pitch": "Protezione modulare per casa, famiglia e salute firmata Poste Assicura.",
+      "talking_points": [
+        "Moduli componibili: casa, salute, infortuni",
+        "Assistenza H24 per emergenze domestiche",
+        "Proporre appuntamento per preventivo personalizzato"
+      ]
+    },
+    {
+      "id": "postemobile",
+      "name": "PosteMobile",
+      "family": "telco",
+      "priority": 0.6,
+      "requires_qualified_advisor": false,
+      "pitch": "Offerte mobili PosteMobile su rete nazionale, attivabili anche in ufficio postale.",
+      "talking_points": [
+        "Portabilità del numero semplice",
+        "Gestione da app e in ufficio postale",
+        "Verificare l'offerta attiva più adatta al consumo del cliente"
+      ]
+    },
+    {
+      "id": "poste_energia",
+      "name": "Poste Energia (Luce e Gas)",
+      "family": "energy",
+      "priority": 0.7,
+      "requires_qualified_advisor": false,
+      "pitch": "Fornitura di luce e gas Poste Energia con prezzo trasparente e gestione dall'app.",
+      "talking_points": [
+        "Energia elettrica da fonti rinnovabili certificate",
+        "Cambio fornitore senza interruzione del servizio",
+        "Gestione bollette dall'app e in ufficio postale"
+      ]
+    },
+    {
+      "id": "prestito_bancoposta",
+      "name": "Prestito BancoPosta",
+      "family": "credit",
+      "priority": 0.9,
+      "requires_qualified_advisor": false,
+      "pitch": "Prestito personale BancoPosta per realizzare un progetto (casa, auto, eventi di famiglia).",
+      "talking_points": [
+        "Importo e durata da personalizzare",
+        "Richiesta soggetta a valutazione del merito creditizio",
+        "Comunicare sempre TAN/TAEG dell'offerta vigente"
+      ]
+    }
+  ]
+}

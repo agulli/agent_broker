@@ -162,3 +162,52 @@ The broker provides a clean, structured JSON response that another machine can i
   ]
 }
 ```
+-----
+
+## \#\# Poste Italiane Call Planner Agent (`poste_sales_agent/`)
+
+An agent that tells a sales team **who to call today, which Poste Italiane product to propose and what to say**, given a daily call target.
+
+### What it does each day
+
+1. **Compliance filter first.** It excludes customers without marketing consent, those in the *Registro Pubblico delle Opposizioni*, explicit do-not-call requests, anyone contacted in the last 14 days, refusals in the last 90 days and sales in the last 30 days. Callbacks the customer asked for are always kept.
+2. **Product fit.** It scores every customer × product pair with transparent rules (age, savings, income, children, home ownership, current mobile/energy provider, life events such as a new job, birth, house move, retirement or inheritance). It never proposes a product the customer already owns.
+3. **Ranking with a varied mix.** It picks the top `N` calls for the day. No single product takes more than 40% of the day (configurable); when a product hits that limit, the customer is offered their next-best product instead. It also returns backup calls in case people don't answer.
+4. **Call sheet.** Each call comes with the reasons for the suggestion, alternative products for cross-selling, and an Italian call script. Investment and insurance products are flagged `requires_qualified_advisor`: the goal of those calls is to book an appointment, not to close the sale.
+5. **Scheduling (optional).** Calls are spread across operators and time slots (preferred time of day, 09:00–20:00 window).
+6. **Feedback loop.** Recording the outcome (`sold`, `appointment`, `callback`, `not_interested`, `no_answer`, `do_not_call`, `wrong_number`) updates the customer base, so tomorrow's plan takes it into account.
+
+### Daily use (CLI)
+
+```bash
+# 25 calls for today, split between three operators
+python -m poste_sales_agent.cli --calls 25 --operators Anna Marco Luca
+
+# Campaign of the month: push Buoni Fruttiferi Postali
+python -m poste_sales_agent.cli --calls 25 --campaign '{"buoni_fruttiferi": 1.5}'
+
+# Record an outcome after the call
+python -m poste_sales_agent.cli --record C1003 sold --product libretto_smart
+```
+
+### API
+
+```bash
+pip install fastapi uvicorn            # google-generativeai only for personalized scripts
+uvicorn poste_sales_agent.api:app --port 8001
+
+curl -X POST localhost:8001/plan -H "Content-Type: application/json" \
+  -d '{"daily_calls": 20, "operators": ["Anna", "Marco"], "campaign_weights": {"poste_vivere_protetti": 1.3}}'
+
+curl -X POST localhost:8001/outcome -H "Content-Type: application/json" \
+  -d '{"customer_id": "C1003", "outcome": "appointment"}'
+```
+
+With `"personalize_scripts": true` and `GOOGLE_API_KEY` set, Gemini rewrites each script in a more natural tone. It is told never to invent rates or conditions. The ranking itself is always deterministic and explainable.
+
+### Data
+
+* `poste_sales_agent/data/products.json`: product catalog (Conto BancoPosta, Postepay Evolution, Libretto Smart, Buoni Fruttiferi Postali, Poste Vita, Poste Vivere Protetti, PosteMobile, Poste Energia, Prestito BancoPosta). **Check product conditions against official, current documentation before using them in calls.**
+* `poste_sales_agent/data/sample_customers.json`: **fictional** demo customers. Point `POSTE_CUSTOMERS_FILE` (API) or `--customers` (CLI) at your real CRM export with the same fields.
+
+Tests: `python -m pytest tests`
