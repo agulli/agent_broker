@@ -12,7 +12,8 @@
         "Accredito di stipendio o pensione",
         "Carta di debito e app BancoPosta inclusi",
         "Operatività anche allo sportello dell'ufficio postale vicino a casa"
-      ]
+      ],
+      "area": "banking"
     },
     {
       "id": "postepay_evolution",
@@ -25,7 +26,8 @@
         "IBAN per ricevere e inviare bonifici",
         "Pagamenti online e contactless, gestione dall'app Postepay",
         "Programma sconti e cashback dedicato"
-      ]
+      ],
+      "area": "banking"
     },
     {
       "id": "libretto_smart",
@@ -38,7 +40,8 @@
         "Risparmio postale emesso da Cassa Depositi e Prestiti e garantito dallo Stato italiano",
         "Nessun costo di apertura e gestione",
         "Possibilità di offerte Supersmart a tasso promozionale (verificare offerte attive)"
-      ]
+      ],
+      "area": "savings"
     },
     {
       "id": "buoni_fruttiferi",
@@ -51,33 +54,8 @@
         "Emessi da Cassa Depositi e Prestiti e garantiti dallo Stato italiano",
         "Esenti da costi di sottoscrizione e rimborso (salvo oneri fiscali)",
         "Buono dedicato ai minori per costruire un capitale per il futuro dei figli"
-      ]
-    },
-    {
-      "id": "polizza_vita_investimento",
-      "name": "Polizza Poste Vita (investimento)",
-      "family": "investment_insurance",
-      "priority": 1.2,
-      "requires_qualified_advisor": true,
-      "pitch": "Soluzione assicurativa di investimento Poste Vita per diversificare i risparmi a medio-lungo termine.",
-      "talking_points": [
-        "Proposta da valutare con un consulente in ufficio postale (profilatura obbligatoria)",
-        "Orizzonte temporale medio-lungo",
-        "Fissare un appuntamento, non concludere al telefono"
-      ]
-    },
-    {
-      "id": "poste_vivere_protetti",
-      "name": "Poste Vivere Protetti (casa e salute)",
-      "family": "protection_insurance",
-      "priority": 1.1,
-      "requires_qualified_advisor": true,
-      "pitch": "Protezione modulare per casa, famiglia e salute firmata Poste Assicura.",
-      "talking_points": [
-        "Moduli componibili: casa, salute, infortuni",
-        "Assistenza H24 per emergenze domestiche",
-        "Proporre appuntamento per preventivo personalizzato"
-      ]
+      ],
+      "area": "savings"
     },
     {
       "id": "postemobile",
@@ -90,7 +68,8 @@
         "Portabilità del numero semplice",
         "Gestione da app e in ufficio postale",
         "Verificare l'offerta attiva più adatta al consumo del cliente"
-      ]
+      ],
+      "area": "services"
     },
     {
       "id": "poste_energia",
@@ -103,7 +82,8 @@
         "Energia elettrica da fonti rinnovabili certificate",
         "Cambio fornitore senza interruzione del servizio",
         "Gestione bollette dall'app e in ufficio postale"
-      ]
+      ],
+      "area": "services"
     },
     {
       "id": "prestito_bancoposta",
@@ -116,6 +96,142 @@
         "Importo e durata da personalizzare",
         "Richiesta soggetta a valutazione del merito creditizio",
         "Comunicare sempre TAN/TAEG dell'offerta vigente"
+      ],
+      "area": "banking"
+    },
+    {
+      "id": "polizza_multiramo",
+      "name": "Polizza multiramo (Poste Vita)",
+      "family": "investment_insurance",
+      "area": "investment",
+      "priority": 1.2,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto di investimento: obbligatoria la profilatura (questionario MiFID/IDD) e la verifica di adeguatezza con un consulente abilitato. Al telefono solo fissare un appuntamento; non promettere rendimenti.",
+      "pitch": "Una soluzione Poste Vita che combina una parte protetta in gestione separata e una parte in fondi, per diversificare i risparmi.",
+      "talking_points": [
+        "Combina stabilità (gestione separata) e opportunità dei mercati",
+        "Orizzonte medio-lungo, ripartizione da definire con il consulente",
+        "Vantaggi successori e fiscali tipici delle polizze vita (da illustrare in ufficio)"
+      ]
+    },
+    {
+      "id": "polizza_rivalutabile",
+      "name": "Polizza rivalutabile Ramo I (Poste Vita)",
+      "family": "investment_insurance",
+      "area": "investment",
+      "priority": 1.1,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto di investimento: obbligatoria la profilatura (questionario MiFID/IDD) e la verifica di adeguatezza con un consulente abilitato. Al telefono solo fissare un appuntamento; non promettere rendimenti.",
+      "pitch": "Polizza vita di Ramo I collegata alla gestione separata Poste Vita, pensata per chi cerca stabilità.",
+      "talking_points": [
+        "Rendimento legato alla gestione separata",
+        "Adatta a profili prudenti con orizzonte medio-lungo",
+        "Possibilità di indicare i beneficiari"
+      ]
+    },
+    {
+      "id": "fondi_bancoposta",
+      "name": "Fondi comuni BancoPosta",
+      "family": "investment",
+      "area": "investment",
+      "priority": 1.1,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto di investimento: obbligatoria la profilatura (questionario MiFID/IDD) e la verifica di adeguatezza con un consulente abilitato. Al telefono solo fissare un appuntamento; non promettere rendimenti.",
+      "pitch": "Fondi comuni di investimento di BancoPosta Fondi SGR, per investire con diversi livelli di rischio.",
+      "talking_points": [
+        "Gestione professionale e diversificazione",
+        "Linee diverse per profilo di rischio",
+        "Scelta del fondo solo dopo la profilatura MiFID"
+      ]
+    },
+    {
+      "id": "pac_fondi",
+      "name": "Piano di accumulo (PAC) Fondi BancoPosta",
+      "family": "investment",
+      "area": "investment",
+      "priority": 1.0,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto di investimento: obbligatoria la profilatura (questionario MiFID/IDD) e la verifica di adeguatezza con un consulente abilitato. Al telefono solo fissare un appuntamento; non promettere rendimenti.",
+      "pitch": "Investire un importo mensile contenuto nei Fondi BancoPosta, costruendo un capitale nel tempo.",
+      "talking_points": [
+        "Versamenti periodici anche di piccolo importo",
+        "Media dei prezzi nel tempo, utile per chi inizia",
+        "Sospendibile o modificabile"
+      ]
+    },
+    {
+      "id": "piano_pensionistico",
+      "name": "Piano individuale pensionistico (Poste Vita)",
+      "family": "pension",
+      "area": "investment",
+      "priority": 1.15,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto di investimento: obbligatoria la profilatura (questionario MiFID/IDD) e la verifica di adeguatezza con un consulente abilitato. Al telefono solo fissare un appuntamento; non promettere rendimenti.",
+      "pitch": "Una pensione integrativa Poste Vita per mantenere il proprio tenore di vita dopo il lavoro.",
+      "talking_points": [
+        "Contributi deducibili dal reddito entro i limiti di legge",
+        "Particolarmente utile per autonomi senza TFR",
+        "Prima si inizia, più il capitale cresce"
+      ]
+    },
+    {
+      "id": "poste_vivere_protetti",
+      "name": "Polizza casa (Poste Assicura)",
+      "family": "protection_insurance",
+      "area": "insurance",
+      "priority": 1.1,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto assicurativo: leggere il set informativo (DIP) con il cliente e far concludere da personale abilitato IVASS. Al telefono solo fissare un appuntamento.",
+      "pitch": "Protezione per la casa e la responsabilità civile della famiglia, con assistenza in caso di emergenze.",
+      "talking_points": [
+        "Danni all'abitazione e responsabilità civile",
+        "Assistenza H24 per emergenze domestiche",
+        "Preventivo personalizzato in ufficio postale"
+      ]
+    },
+    {
+      "id": "polizza_salute",
+      "name": "Polizza salute (Poste Assicura)",
+      "family": "protection_insurance",
+      "area": "insurance",
+      "priority": 1.1,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto assicurativo: leggere il set informativo (DIP) con il cliente e far concludere da personale abilitato IVASS. Al telefono solo fissare un appuntamento.",
+      "pitch": "Copertura per spese mediche, visite ed esami, per accedere più rapidamente alle cure.",
+      "talking_points": [
+        "Rimborso o rete convenzionata per visite ed esami",
+        "Utile per ridurre i tempi di attesa",
+        "Verificare limiti di età e carenze nel set informativo"
+      ]
+    },
+    {
+      "id": "polizza_infortuni",
+      "name": "Polizza infortuni (Poste Assicura)",
+      "family": "protection_insurance",
+      "area": "insurance",
+      "priority": 1.0,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto assicurativo: leggere il set informativo (DIP) con il cliente e far concludere da personale abilitato IVASS. Al telefono solo fissare un appuntamento.",
+      "pitch": "Protezione economica in caso di infortunio, sul lavoro e nel tempo libero.",
+      "talking_points": [
+        "Indennizzo in caso di invalidità permanente da infortunio",
+        "Particolarmente utile per lavoratori autonomi",
+        "Coperture modulabili"
+      ]
+    },
+    {
+      "id": "protezione_vita_tcm",
+      "name": "Protezione vita – TCM (Poste Vita)",
+      "family": "protection_insurance",
+      "area": "insurance",
+      "priority": 1.15,
+      "requires_qualified_advisor": true,
+      "regulatory_note": "Prodotto assicurativo: leggere il set informativo (DIP) con il cliente e far concludere da personale abilitato IVASS. Al telefono solo fissare un appuntamento.",
+      "pitch": "Una temporanea caso morte che garantisce un capitale alla famiglia se viene a mancare chi la sostiene.",
+      "talking_points": [
+        "Tutela per figli e coniuge",
+        "Utile con mutuo o prestito in corso",
+        "Premio contenuto, da calcolare in base a età e capitale"
       ]
     }
   ]

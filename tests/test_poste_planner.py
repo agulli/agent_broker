@@ -107,3 +107,54 @@ def test_do_not_call_removes_consent():
     cs = [customer()]
     planner.record_outcome(cs, "X1", "do_not_call", today=TODAY)
     assert cs[0]["consent_marketing"] is False
+
+
+# --- insurance & investment rules ----------------------------------------- #
+def options(products, **kw):
+    return [o["product"]["id"] for o in
+            planner.score_customer(customer(**kw), products, TODAY, planner.PlannerConfig())]
+
+
+def test_catalog_has_insurance_and_investment(products):
+    areas = {p["area"] for p in products}
+    assert {"insurance", "investment"} <= areas
+    for p in products:
+        assert p["id"] in planner.RULES
+        if p["area"] in ("insurance", "investment"):
+            assert p["requires_qualified_advisor"] and p["regulatory_note"]
+
+
+def test_conservative_profile_gets_no_risky_investments(products):
+    opts = options(products, age=60, liquid_savings_eur=100000, risk_profile="conservative")
+    assert "fondi_bancoposta" not in opts and "polizza_multiramo" not in opts
+    assert "polizza_rivalutabile" in opts
+
+
+def test_dynamic_profile_gets_funds_not_ramo_i(products):
+    opts = options(products, age=45, liquid_savings_eur=60000, risk_profile="dynamic")
+    assert "fondi_bancoposta" in opts and "polizza_rivalutabile" not in opts
+
+
+def test_self_employed_gets_pension_and_accident(products):
+    opts = options(products, age=35, employment="self_employed", monthly_income_eur=3000,
+                   products_owned=["conto_bancoposta"])
+    assert "piano_pensionistico" in opts and "polizza_infortuni" in opts
+
+
+def test_pension_fund_holder_not_offered_pip(products):
+    opts = options(products, age=35, employment="employee", has_pension_fund=True)
+    assert "piano_pensionistico" not in opts
+
+
+def test_family_with_mortgage_gets_term_life(products):
+    opts = options(products, age=38, children_under_18=2, has_mortgage=True, homeowner=True,
+                   products_owned=["conto_bancoposta", "postepay_evolution"])
+    assert opts[0] == "protezione_vita_tcm"
+
+
+def test_investment_script_contains_regulatory_note(products):
+    c = customer(age=50, liquid_savings_eur=90000, risk_profile="moderate",
+                 products_owned=["conto_bancoposta", "libretto_smart", "buoni_fruttiferi"])
+    call = planner.plan_daily_calls([c], products, 1, today=TODAY)["calls"][0]
+    assert call["product_area"] == "investment"
+    assert "MiFID" in call["script"]

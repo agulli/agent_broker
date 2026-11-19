@@ -57,6 +57,9 @@ class PlannerConfig:
     max_share_per_product: float = 0.4
     # Optional campaign weights per product id (e.g. {"buoni_fruttiferi": 1.5}).
     campaign_weights: dict = field(default_factory=dict)
+    # Optional weights per product area: banking, savings, investment,
+    # insurance, services (e.g. {"insurance": 1.3}). Multiplied with the above.
+    area_weights: dict = field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------- #
@@ -134,36 +137,189 @@ def fit_buoni_fruttiferi(c):
     return s, r
 
 
-def fit_polizza_vita(c):
+# --- Investment products --------------------------------------------------- #
+# Suitability is decided by a qualified advisor (MiFID/IDD questionnaire). The
+# planner only uses the risk profile already on file, if any, to avoid
+# proposing clearly unsuitable products; the call goal is an appointment.
+
+def _eur(x: int) -> str:
+    return f"{x:,} €".replace(",", ".")
+
+
+def _risk(c: dict) -> Optional[str]:
+    return c.get("risk_profile")  # "conservative" | "moderate" | "dynamic" | None
+
+
+def _risk_note(c: dict, r: list) -> None:
+    if _risk(c) is None:
+        r.append("Profilo di rischio non ancora definito: profilatura in appuntamento")
+
+
+def fit_polizza_multiramo(c):
     sav = c.get("liquid_savings_eur", 0)
-    if sav < 30000 or not 35 <= c["age"] <= 75:
+    if sav < 30000 or not 35 <= c["age"] <= 75 or _risk(c) == "conservative":
         return 0, []
-    s, r = 0.5, [f"Patrimonio liquido elevato (~{sav:,} €)".replace(",", ".")]
+    s, r = 0.5, [f"Patrimonio liquido elevato (~{_eur(sav)})"]
     if sav >= 80000:
-        s += 0.2
+        s += 0.15
+    if _risk(c) in ("moderate", "dynamic"):
+        s += 0.15
+        r.append(f"Profilo di rischio {_risk(c)}")
     if "inheritance" in c.get("life_events", []):
         s += 0.2
         r.append("Eredità recente da pianificare")
     if "retirement" in c.get("life_events", []):
         s += 0.2
         r.append("Pensionamento: TFR da investire")
+    _risk_note(c, r)
     return s, r
 
 
+def fit_polizza_rivalutabile(c):
+    sav = c.get("liquid_savings_eur", 0)
+    if sav < 15000 or not 45 <= c["age"] <= 85 or _risk(c) == "dynamic":
+        return 0, []
+    s, r = 0.45, [f"Risparmi ~{_eur(sav)} da proteggere nel tempo"]
+    if _risk(c) == "conservative":
+        s += 0.2
+        r.append("Profilo prudente")
+    if c["age"] >= 60:
+        s += 0.1
+        r.append("Interesse per trasmissione del patrimonio ai beneficiari")
+    if "retirement" in c.get("life_events", []):
+        s += 0.2
+        r.append("Pensionamento: liquidità da collocare")
+    _risk_note(c, r)
+    return s, r
+
+
+def fit_fondi_bancoposta(c):
+    sav = c.get("liquid_savings_eur", 0)
+    if sav < 10000 or not 25 <= c["age"] <= 70 or _risk(c) == "conservative":
+        return 0, []
+    s, r = 0.4, [f"Liquidità ~{_eur(sav)} non investita"]
+    if _risk(c) == "dynamic":
+        s += 0.25
+        r.append("Profilo di rischio dinamico")
+    elif _risk(c) == "moderate":
+        s += 0.15
+        r.append("Profilo di rischio moderato")
+    if sav >= 50000:
+        s += 0.1
+    if "inheritance" in c.get("life_events", []):
+        s += 0.15
+        r.append("Eredità recente")
+    _risk_note(c, r)
+    return s, r
+
+
+def fit_pac_fondi(c):
+    inc = c.get("monthly_income_eur", 0)
+    if inc < 1500 or not 22 <= c["age"] <= 55 or _risk(c) == "conservative":
+        return 0, []
+    s, r = 0.35, [f"Reddito regolare (~{_eur(inc)}/mese) per versamenti periodici"]
+    if c.get("liquid_savings_eur", 0) < 10000:
+        s += 0.1
+        r.append("Capitale iniziale contenuto: ideale iniziare con un PAC")
+    if c.get("children_under_18", 0):
+        s += 0.15
+        r.append("Obiettivo di lungo periodo per i figli")
+    if "new_job" in c.get("life_events", []):
+        s += 0.2
+        r.append("Nuovo lavoro: momento giusto per iniziare a investire")
+    _risk_note(c, r)
+    return s, r
+
+
+def fit_piano_pensionistico(c):
+    emp = c.get("employment")
+    if (not 25 <= c["age"] <= 55 or c.get("monthly_income_eur", 0) < 1200
+            or c.get("has_pension_fund") or emp not in ("employee", "self_employed")):
+        return 0, []
+    s, r = 0.4, ["Nessuna previdenza integrativa"]
+    if emp == "self_employed":
+        s += 0.25
+        r.append("Lavoratore autonomo: nessun TFR, contributi deducibili")
+    if c["age"] <= 40:
+        s += 0.1
+        r.append("Lungo orizzonte fino alla pensione")
+    if c.get("monthly_income_eur", 0) >= 2500:
+        s += 0.1
+        r.append("Reddito che beneficia della deducibilità")
+    return s, r
+
+
+# --- Insurance products ---------------------------------------------------- #
 def fit_vivere_protetti(c):
     s, r = 0.0, []
     if c.get("homeowner"):
         s += 0.35
         r.append("Proprietario di casa")
+    if c.get("has_mortgage"):
+        s += 0.15
+        r.append("Mutuo in corso")
     if c.get("children_under_18", 0):
-        s += 0.2
-        r.append("Famiglia con figli")
+        s += 0.15
+        r.append("Famiglia con figli: responsabilità civile")
     if "moving_house" in c.get("life_events", []):
         s += 0.3
         r.append("Trasloco/nuova casa")
-    if c["age"] >= 50:
+    return s, r
+
+
+def fit_polizza_salute(c):
+    if not 30 <= c["age"] <= 75:
+        return 0, []
+    s, r = 0.25, []
+    if c["age"] >= 45:
+        s += 0.2
+        r.append(f"Età {c['age']}: maggiore attenzione alla salute")
+    if c.get("children_under_18", 0):
         s += 0.1
-        r.append("Interesse per copertura salute")
+        r.append("Copertura estendibile alla famiglia")
+    if "retirement" in c.get("life_events", []):
+        s += 0.15
+        r.append("Pensionamento: fine di eventuali coperture aziendali")
+    if c.get("employment") == "self_employed":
+        s += 0.1
+        r.append("Autonomo senza assistenza sanitaria aziendale")
+    return s, r
+
+
+def fit_polizza_infortuni(c):
+    if not 18 <= c["age"] <= 70 or c.get("employment") in ("retired", "student"):
+        return 0, []
+    s, r = 0.2, []
+    if c.get("employment") == "self_employed":
+        s += 0.35
+        r.append("Lavoratore autonomo: un infortunio ferma il reddito")
+    if c.get("children_under_18", 0):
+        s += 0.1
+        r.append("Famiglia che dipende dal suo reddito")
+    if "new_job" in c.get("life_events", []):
+        s += 0.1
+        r.append("Nuova attività lavorativa")
+    return s, r
+
+
+def fit_protezione_vita_tcm(c):
+    if not 25 <= c["age"] <= 65 or c.get("monthly_income_eur", 0) <= 0:
+        return 0, []
+    s, r = 0.0, []
+    kids = c.get("children_under_18", 0)
+    if kids:
+        s += 0.35
+        r.append(f"{kids} figli minori da tutelare")
+    if c.get("has_mortgage"):
+        s += 0.3
+        r.append("Mutuo in corso: proteggere la famiglia dal debito residuo")
+    if _owns(c, "prestito_bancoposta"):
+        s += 0.15
+        r.append("Prestito in corso")
+    for ev, label in (("child_born", "Nascita recente"), ("wedding", "Matrimonio")):
+        if ev in c.get("life_events", []):
+            s += 0.2
+            r.append(label)
     return s, r
 
 
@@ -205,15 +361,26 @@ def fit_prestito(c):
 
 
 RULES: dict[str, Rule] = {
+    # banking, payments, savings, credit
     "conto_bancoposta": fit_conto_bancoposta,
     "postepay_evolution": fit_postepay_evolution,
     "libretto_smart": fit_libretto_smart,
     "buoni_fruttiferi": fit_buoni_fruttiferi,
-    "polizza_vita_investimento": fit_polizza_vita,
+    "prestito_bancoposta": fit_prestito,
+    # investment
+    "polizza_multiramo": fit_polizza_multiramo,
+    "polizza_rivalutabile": fit_polizza_rivalutabile,
+    "fondi_bancoposta": fit_fondi_bancoposta,
+    "pac_fondi": fit_pac_fondi,
+    "piano_pensionistico": fit_piano_pensionistico,
+    # insurance
     "poste_vivere_protetti": fit_vivere_protetti,
+    "polizza_salute": fit_polizza_salute,
+    "polizza_infortuni": fit_polizza_infortuni,
+    "protezione_vita_tcm": fit_protezione_vita_tcm,
+    # services
     "postemobile": fit_postemobile,
     "poste_energia": fit_poste_energia,
-    "prestito_bancoposta": fit_prestito,
 }
 
 
@@ -265,6 +432,7 @@ def score_customer(c: dict, products: list[dict], today: dt.date,
         if fit <= 0:
             continue
         weight = p.get("priority", 1.0) * cfg.campaign_weights.get(p["id"], 1.0)
+        weight *= cfg.area_weights.get(p.get("area"), 1.0)
         options.append({"product": p, "score": min(fit, 1.0) * weight,
                         "reasons": list(reasons)})
     if not options:
@@ -299,6 +467,8 @@ def build_script(c: dict, p: dict, reasons: list[str]) -> str:
     if p.get("requires_qualified_advisor"):
         lines.append("Obiettivo della chiamata: fissare un appuntamento con un "
                      "consulente in ufficio postale (non concludere al telefono).")
+    if p.get("regulatory_note"):
+        lines.append(f"Nota normativa: {p['regulatory_note']}")
     lines.append("Chiusura: proporre appuntamento in ufficio postale o invio "
                  "informazioni via app/email; registrare l'esito.")
     return "\n".join(lines)
@@ -400,6 +570,7 @@ def plan_daily_calls(customers: list[dict], products: list[dict], daily_calls: i
             "preferred_time": c.get("preferred_time"),
             "product_id": p["id"],
             "product_name": p["name"],
+            "product_area": p.get("area"),
             "requires_qualified_advisor": p.get("requires_qualified_advisor", False),
             "score": o["score"],
             "reasons": o["reasons"],
@@ -436,6 +607,9 @@ def plan_daily_calls(customers: list[dict], products: list[dict], daily_calls: i
     by_product: dict[str, int] = {}
     for c in calls:
         by_product[c["product_name"]] = by_product.get(c["product_name"], 0) + 1
+    by_area: dict[str, int] = {}
+    for c in calls:
+        by_area[c["product_area"] or "other"] = by_area.get(c["product_area"] or "other", 0) + 1
 
     return {
         "date": today.isoformat(),
@@ -446,6 +620,7 @@ def plan_daily_calls(customers: list[dict], products: list[dict], daily_calls: i
             "eligible_candidates": eligible,
             "excluded": excluded,
             "calls_by_product": by_product,
+            "calls_by_area": by_area,
         },
         "warnings": warnings,
         "calls": calls,

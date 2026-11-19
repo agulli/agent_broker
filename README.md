@@ -177,6 +177,33 @@ An agent that tells a sales team **who to call today, which Poste Italiane produ
 5. **Scheduling (optional).** Calls are spread across operators and time slots (preferred time of day, 09:00–20:00 window).
 6. **Feedback loop.** Recording the outcome (`sold`, `appointment`, `callback`, `not_interested`, `no_answer`, `do_not_call`, `wrong_number`) updates the customer base, so tomorrow's plan takes it into account.
 
+### Operator console (web UI)
+
+```bash
+pip install fastapi uvicorn
+uvicorn poste_sales_agent.api:app --port 8001
+# open http://127.0.0.1:8001/
+```
+
+* **Settings:** daily call target, operators, and campaign focus sliders per area (accounts & cards, savings, investment, insurance, telco & energy). There is also a cap on how much of the day one product can take.
+* **Today's progress:** calls made against the target, sales, appointments, callbacks, success rate, and the product mix by area.
+* **Call list:** ordered by time and filterable by operator and area. Each card has a tap-to-call button, the reasons for the call, an alternative product to offer, the script (with a copy button) and one-click outcome buttons. For investment and insurance products the "Sold" button is hidden: the goal is an appointment with an advisor.
+* **Backups:** when a customer doesn't answer, has a wrong number or asks not to be called again, the next backup call is added automatically, so the daily target holds.
+* **Catalog tab:** every product with its pitch and regulatory notes.
+* Works on phones, supports dark mode, and today's plan and outcomes survive a page reload.
+
+### Product areas
+
+| Area | Products | On the phone |
+|---|---|---|
+| Accounts & cards | Conto BancoPosta, Postepay Evolution, Prestito BancoPosta | Can be sold |
+| Savings | Libretto Smart, Buoni Fruttiferi Postali | Can be sold |
+| **Investment** | Polizza multiramo, Polizza rivalutabile Ramo I, Fondi BancoPosta, PAC Fondi BancoPosta, Piano individuale pensionistico | **Appointment only** (MiFID/IDD profiling) |
+| **Insurance** | Polizza casa, Polizza salute, Polizza infortuni, Protezione vita TCM | **Appointment only** (IVASS-qualified staff) |
+| Telco & energy | PosteMobile, Poste Energia | Can be sold |
+
+Investment rules use the customer's `risk_profile` when it is on file: conservative customers are never offered funds or multi-line policies, and dynamic customers are not offered Ramo I. The other new customer fields are `employment`, `has_mortgage` and `has_pension_fund`. Regenerate the demo data with `python -m poste_sales_agent.data.generate_sample`.
+
 ### Daily use (CLI)
 
 ```bash
@@ -197,7 +224,7 @@ pip install fastapi uvicorn            # google-generativeai only for personaliz
 uvicorn poste_sales_agent.api:app --port 8001
 
 curl -X POST localhost:8001/plan -H "Content-Type: application/json" \
-  -d '{"daily_calls": 20, "operators": ["Anna", "Marco"], "campaign_weights": {"poste_vivere_protetti": 1.3}}'
+  -d '{"daily_calls": 20, "operators": ["Anna", "Marco"], "area_weights": {"insurance": 1.3}, "campaign_weights": {"piano_pensionistico": 1.2}}'
 
 curl -X POST localhost:8001/outcome -H "Content-Type: application/json" \
   -d '{"customer_id": "C1003", "outcome": "appointment"}'
@@ -207,7 +234,7 @@ With `"personalize_scripts": true` and `GOOGLE_API_KEY` set, Gemini rewrites eac
 
 ### Data
 
-* `poste_sales_agent/data/products.json`: product catalog (Conto BancoPosta, Postepay Evolution, Libretto Smart, Buoni Fruttiferi Postali, Poste Vita, Poste Vivere Protetti, PosteMobile, Poste Energia, Prestito BancoPosta). **Check product conditions against official, current documentation before using them in calls.**
+* `poste_sales_agent/data/products.json`: product catalog (16 products across the five areas above). Investment and insurance product names are descriptive, not official commercial names. **Check product conditions against official, current documentation before using them in calls.**
 * `poste_sales_agent/data/sample_customers.json`: **fictional** demo customers. Point `POSTE_CUSTOMERS_FILE` (API) or `--customers` (CLI) at your real CRM export with the same fields.
 
 Tests: `python -m pytest tests`

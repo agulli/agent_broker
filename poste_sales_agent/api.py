@@ -18,7 +18,10 @@ import json
 import os
 from typing import Optional
 
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from . import planner
@@ -39,6 +42,7 @@ class PlanRequest(BaseModel):
     date: Optional[dt.date] = None
     operators: Optional[list[str]] = None
     campaign_weights: dict[str, float] = Field(default_factory=dict)
+    area_weights: dict[str, float] = Field(default_factory=dict)
     max_share_per_product: float = Field(0.4, gt=0, le=1)
     personalize_scripts: bool = False
 
@@ -50,6 +54,15 @@ class OutcomeRequest(BaseModel):
     date: Optional[dt.date] = None
 
 
+UI_FILE = Path(__file__).parent / "ui" / "index.html"
+
+
+@app.get("/", include_in_schema=False)
+def ui() -> FileResponse:
+    """Operator console (single page, no build step)."""
+    return FileResponse(UI_FILE)
+
+
 @app.get("/products")
 def products() -> dict:
     return {"products": planner.load_products(PRODUCTS_FILE)}
@@ -58,6 +71,7 @@ def products() -> dict:
 @app.post("/plan")
 def plan(req: PlanRequest) -> dict:
     cfg = planner.PlannerConfig(campaign_weights=req.campaign_weights,
+                                area_weights=req.area_weights,
                                 max_share_per_product=req.max_share_per_product)
     result = planner.plan_daily_calls(
         planner.load_customers(CUSTOMERS_FILE), planner.load_products(PRODUCTS_FILE),

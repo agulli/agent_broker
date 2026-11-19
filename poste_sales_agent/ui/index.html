@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piano Chiamate</title>
+<style>
+:root {
+  --bg: #f5f5f2; --surface: #ffffff; --surface-2: #f0efea; --line: #e2e0d8;
+  --text: #1d1d1b; --muted: #6b6a64; --accent: #f2c200; --accent-ink: #1d1d1b;
+  --focus: #1f5fd1; --ok: #1f7a4a; --warn: #a15c00; --bad: #b3261e;
+  --a-banking: #2f63c9; --a-savings: #23875a; --a-investment: #7a4cc2;
+  --a-insurance: #d0661c; --a-services: #5f7480;
+  --radius: 10px; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151514; --surface: #1f1f1d; --surface-2: #2a2a27; --line: #363632;
+    --text: #ecebe6; --muted: #a3a29b; --accent: #f2c200; --accent-ink: #1d1d1b;
+    --focus: #7aa7ff; --ok: #5cc28d; --warn: #e3a64a; --bad: #f08a83;
+    --a-banking: #6b98f0; --a-savings: #57c08f; --a-investment: #ad8af0;
+    --a-insurance: #f0975a; --a-services: #95a9b4;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151514; --surface: #1f1f1d; --surface-2: #2a2a27; --line: #363632;
+  --text: #ecebe6; --muted: #a3a29b; --focus: #7aa7ff; --ok: #5cc28d; --warn: #e3a64a; --bad: #f08a83;
+  --a-banking: #6b98f0; --a-savings: #57c08f; --a-investment: #ad8af0;
+  --a-insurance: #f0975a; --a-services: #95a9b4; --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Header */
+header { position: sticky; top: 0; z-index: 5; background: var(--surface);
+  border-bottom: 1px solid var(--line); }
+.bar { max-width: 1240px; margin: 0 auto; padding: 10px 16px; display: flex;
+  align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 17px; margin-right: auto; }
+.brand i { width: 12px; height: 26px; border-radius: 3px; background: var(--accent); }
+.bar label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.bar input, .bar select { background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 8px; }
+
+/* Layout */
+.layout { max-width: 1240px; margin: 0 auto; padding: 16px; display: grid;
+  grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+@media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+.layout > * { min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 16px; }
+aside.panel { position: sticky; top: 70px; }
+@media (max-width: 880px) { aside.panel { position: static; } }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  margin: 0 0 10px; font-weight: 600; }
+.field { margin-bottom: 14px; }
+.field > span { display: block; font-size: 13px; font-weight: 550; margin-bottom: 4px; }
+.field input[type=number], .field input[type=text] { width: 100%; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.slider { display: grid; grid-template-columns: 136px 1fr 40px; align-items: center; gap: 8px;
+  font-size: 13px; margin: 6px 0; }
+.slider input { width: 100%; min-width: 0; accent-color: var(--text); }
+.slider label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slider output { text-align: right; color: var(--muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px;
+  padding: 8px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent;
+  font-weight: 650; width: 100%; padding: 10px; }
+.btn.primary:hover { filter: brightness(.96); }
+.btn:disabled { opacity: .55; cursor: progress; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 8px; }
+summary::after { content: "▾"; color: var(--muted); }
+details[open] summary { margin-bottom: 12px; }
+details[open] summary::after { content: "▴"; }
+#setupSummary { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: auto; }
+@media (min-width: 881px) { summary { display: none; } }
+.excl { font-size: 13px; margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.excl div { display: flex; justify-content: space-between; padding: 2px 0; color: var(--muted); }
+.excl b { color: var(--text); font-weight: 550; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+@media (max-width: 720px) {
+  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .kpis .k:first-child { grid-column: 1 / -1; }
+  .kpis .k:not(:first-child) { padding: 8px; }
+  .kpis .k:not(:first-child) strong { font-size: 18px; }
+  .k small { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+.k { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; box-shadow: var(--shadow); }
+.k small { display: block; color: var(--muted); font-size: 12.5px; }
+.k strong { font-size: 24px; font-weight: 650; }
+.k strong span { font-size: 14px; color: var(--muted); font-weight: 500; }
+.progress { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+
+.mix { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.mixbar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; margin: 8px 0; }
+.mixbar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.warnings { margin: 0 0 12px; padding: 0; list-style: none; }
+.warnings li { background: color-mix(in srgb, var(--warn) 12%, var(--surface)); border: 1px solid
+  color-mix(in srgb, var(--warn) 35%, transparent); color: var(--text); border-radius: 8px;
+  padding: 8px 12px; font-size: 13.5px; margin-bottom: 6px; }
+
+/* Tabs & filters */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 3px; border-radius: 9px; flex-wrap: wrap; }
+.tabs button { border: 0; background: transparent; padding: 6px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); }
+.tabs button[aria-selected=true] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 4px 10px; font-size: 13px; cursor: pointer; color: var(--muted); }
+.chip[aria-pressed=true] { color: var(--text); border-color: var(--text); }
+
+/* Call cards */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.call { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); border-left: 4px solid var(--area, var(--line)); }
+.call > button.head { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid;
+  grid-template-columns: 64px 1fr auto auto; gap: 12px; align-items: center; padding: 12px 14px; }
+.call > button.head:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: var(--radius); }
+.time { font-weight: 650; }
+.time small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who strong { display: block; }
+.who span { color: var(--muted); font-size: 13px; }
+.prod { font-size: 13px; text-align: right; }
+.prod b { display: block; font-weight: 600; color: var(--area); }
+.prod em { font-style: normal; color: var(--muted); font-size: 12px; }
+.score { width: 46px; text-align: right; font-size: 12px; color: var(--muted); }
+.score i { display: block; height: 4px; background: var(--surface-2); border-radius: 2px; margin-top: 3px; overflow: hidden; }
+.score i::after { content: ""; display: block; height: 100%; width: var(--s); background: var(--text); opacity: .6; }
+@media (max-width: 600px) {
+  .call > button.head { grid-template-columns: 54px 1fr; }
+  .prod { grid-column: 2; text-align: left; }
+  .score { display: none; }
+}
+.status { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-2); margin-top: 4px; }
+.status.good { color: var(--ok); } .status.bad { color: var(--bad); } .status.mid { color: var(--warn); }
+.detail { padding: 0 14px 14px 90px; display: grid; gap: 12px; }
+@media (max-width: 600px) { .detail { padding-left: 14px; } }
+.detail h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 4px; font-weight: 600; }
+.detail ul { margin: 0; padding-left: 18px; }
+.script { white-space: pre-wrap; background: var(--surface-2); border-radius: 8px; padding: 10px 12px;
+  font-size: 14px; margin: 0; max-height: 280px; overflow: auto; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tel { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--accent-ink);
+  background: var(--accent); padding: 8px 14px; border-radius: 8px; font-weight: 650; }
+.advisor { font-size: 12.5px; background: color-mix(in srgb, var(--a-investment) 14%, var(--surface));
+  border-radius: 8px; padding: 8px 10px; }
+.outcomes { display: flex; flex-wrap: wrap; gap: 6px; }
+.outcomes .btn { font-size: 13.5px; padding: 6px 10px; }
+.outcomes .btn.good { border-color: color-mix(in srgb, var(--ok) 50%, transparent); color: var(--ok); font-weight: 600; }
+.outcomes .btn.bad { color: var(--bad); }
+.empty { text-align: center; color: var(--muted); padding: 40px 16px; background: var(--surface);
+  border: 1px dashed var(--line); border-radius: var(--radius); }
+
+/* Catalog */
+.catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.pcard { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--area);
+  border-radius: var(--radius); padding: 12px 14px; font-size: 14px; }
+.pcard h4 { margin: 0 0 4px; font-size: 15px; }
+.pcard p { margin: 4px 0; color: var(--muted); }
+.pcard .tag { font-size: 12px; font-weight: 600; color: var(--area); text-transform: uppercase; letter-spacing: .04em; }
+
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text);
+  color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 14px; opacity: 0;
+  transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px); z-index: 10; }
+.toast.show { opacity: 1; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><i></i>Piano chiamate</div>
+    <label>Data <input type="date" id="date"></label>
+    <label>Operatore <select id="opFilter"><option value="">Tutti</option></select></label>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="panel" aria-label="Impostazioni del piano">
+   <details id="setup" open>
+    <summary>Impostazioni del piano <span id="setupSummary"></span></summary>
+    <h2>Obiettivo di oggi</h2>
+    <div class="field">
+      <span>Numero di chiamate</span>
+      <input type="number" id="calls" min="1" max="1000" value="20" class="num">
+    </div>
+    <div class="field">
+      <span>Operatori</span>
+      <input type="text" id="operators" placeholder="es. Anna, Marco, Luca" value="Anna, Marco">
+      <p class="hint">Separati da virgola. Le chiamate vengono distribuite per fascia oraria.</p>
+    </div>
+    <h2 style="margin-top:18px">Focus campagna</h2>
+    <div id="areaSliders"></div>
+    <div class="slider" style="margin-top:12px">
+      <label for="share">Max per prodotto</label>
+      <input type="range" id="share" min="0.2" max="1" step="0.05" value="0.4">
+      <output id="shareOut" class="num">40%</output>
+    </div>
+    <p class="hint">Limita quanto un singolo prodotto può occupare della giornata, per variare l'offerta.</p>
+    <button class="btn primary" id="generate" style="margin-top:14px">Genera piano</button>
+    <div class="excl" id="excl" hidden></div>
+   </details>
+  </aside>
+
+  <main>
+    <div class="kpis" id="kpis" hidden>
+      <div class="k"><small>Chiamate effettuate</small>
+        <strong class="num" id="kDone">0 <span>/ 0</span></strong>
+        <div class="progress" role="progressbar" aria-label="Avanzamento" id="kProg"><i></i></div></div>
+      <div class="k"><small>Vendite</small><strong class="num" id="kSold">0</strong></div>
+      <div class="k"><small>Appuntamenti</small><strong class="num" id="kAppt">0</strong></div>
+      <div class="k"><small>Da richiamare</small><strong class="num" id="kCb">0</strong></div>
+      <div class="k"><small>Esito positivo</small><strong class="num" id="kRate">–</strong></div>
+    </div>
+    <ul class="warnings" id="warnings"></ul>
+    <div class="mix" id="mix" hidden>
+      <h2 style="margin:0">Mix di oggi per area</h2>
+      <div class="mixbar" id="mixbar"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="todo" aria-selected="true">Da fare <span class="num" id="cTodo"></span></button>
+        <button role="tab" data-tab="done" aria-selected="false">Completate <span class="num" id="cDone"></span></button>
+        <button role="tab" data-tab="backup" aria-selected="false">Riserve <span class="num" id="cBackup"></span></button>
+        <button role="tab" data-tab="catalog" aria-selected="false">Catalogo</button>
+      </div>
+      <div class="chips" id="areaChips" aria-label="Filtra per area"></div>
+    </div>
+    <div id="view" aria-live="polite"></div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const AREAS = {
+  banking:    { label: "Conti e carte",  color: "var(--a-banking)" },
+  savings:    { label: "Risparmio",      color: "var(--a-savings)" },
+  investment: { label: "Investimento",   color: "var(--a-investment)" },
+  insurance:  { label: "Protezione",     color: "var(--a-insurance)" },
+  services:   { label: "Telefonia e energia", color: "var(--a-services)" },
+};
+const OUTCOMES = {
+  sold:           { label: "Venduto",          cls: "good" },
+  appointment:    { label: "Appuntamento",     cls: "good" },
+  callback:       { label: "Richiamare",       cls: "mid" },
+  not_interested: { label: "Non interessato",  cls: "bad" },
+  no_answer:      { label: "Non risponde",     cls: "mid" },
+  wrong_number:   { label: "Numero errato",    cls: "bad" },
+  do_not_call:    { label: "Non chiamare più", cls: "bad" },
+};
+// Outcomes that free a slot: the first backup call is promoted automatically.
+const REPLACE = new Set(["no_answer", "wrong_number", "do_not_call"]);
+const EXCLUDED = {
+  no_marketing_consent: "Senza consenso marketing",
+  registro_pubblico_opposizioni: "Registro delle Opposizioni",
+  do_not_call: "Chiesto di non essere chiamati",
+  contacted_recently: "Contattati di recente",
+  refusal_cooldown: "Rifiuto recente",
+  recent_sale_cooldown: "Vendita recente",
+  no_suitable_product: "Nessun prodotto adatto",
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+let state = { plan: null, outcomes: {}, tab: "todo", area: "", open: null };
+let products = [];
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+const key = () => "poste-plan-" + $("date").value;
+const save = () => store.set(key(), { plan: state.plan, outcomes: state.outcomes });
+
+// ---------- setup panel ----------
+function buildSliders() {
+  const saved = store.get("poste-settings") || {};
+  $("areaSliders").innerHTML = Object.entries(AREAS).map(([id, a]) => `
+    <div class="slider">
+      <label for="w-${id}"><span class="dot" style="background:${a.color}"></span>${a.label}</label>
+      <input type="range" id="w-${id}" data-area="${id}" min="0.5" max="2" step="0.1" value="${saved.areas?.[id] ?? 1}">
+      <output class="num" for="w-${id}"></output>
+    </div>`).join("");
+  if (saved.calls) $("calls").value = saved.calls;
+  if (saved.operators != null) $("operators").value = saved.operators;
+  if (saved.share) $("share").value = saved.share;
+  const sync = () => {
+    document.querySelectorAll("#areaSliders input").forEach((i) =>
+      i.nextElementSibling.textContent = "×" + Number(i.value).toFixed(1));
+    $("shareOut").textContent = Math.round($("share").value * 100) + "%";
+  };
+  document.querySelectorAll("aside input").forEach((i) => i.addEventListener("input", sync));
+  sync();
+}
+
+function readSettings() {
+  const areas = {};
+  document.querySelectorAll("#areaSliders input").forEach((i) => areas[i.dataset.area] = Number(i.value));
+  const s = { calls: Number($("calls").value), operators: $("operators").value,
+              share: Number($("share").value), areas };
+  store.set("poste-settings", s);
+  return s;
+}
+
+async function generate() {
+  const s = readSettings();
+  if (!(s.calls >= 1)) { toast("Indica un numero di chiamate valido."); return; }
+  const done = Object.keys(state.outcomes).length;
+  if (state.plan && done && !confirm(
+      `Hai già registrato ${done} esiti oggi. Generare un nuovo piano? ` +
+      "I clienti già chiamati non verranno riproposti.")) return;
+  const btn = $("generate"); btn.disabled = true; btn.textContent = "Calcolo in corso…";
+  try {
+    const ops = s.operators.split(",").map((x) => x.trim()).filter(Boolean);
+    const res = await fetch("/plan", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ daily_calls: s.calls, date: $("date").value, operators: ops.length ? ops : null,
+                             area_weights: s.areas, max_share_per_product: s.share }) });
+    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    state.plan = await res.json(); state.outcomes = {}; state.tab = "todo"; state.open = null;
+    save(); render(); collapseSetupOnMobile();
+    toast(`Piano pronto: ${state.plan.planned_calls} chiamate.`);
+  } catch (e) { toast("Errore: " + e.message); }
+  finally { btn.disabled = false; btn.textContent = "Genera piano"; }
+}
+
+const isNarrow = () => window.matchMedia("(max-width: 880px)").matches;
+function collapseSetupOnMobile() {
+  if (isNarrow() && state.plan) $("setup").open = false;
+  if (!isNarrow()) $("setup").open = true;
+}
+window.matchMedia("(max-width: 880px)").addEventListener("change", collapseSetupOnMobile);
+
+// ---------- outcomes ----------
+async function recordOutcome(call, outcome) {
+  if (outcome === "do_not_call" && !confirm(
+      `${call.customer_name} non verrà più contattato e il consenso marketing sarà revocato. Confermi?`)) return;
+  try {
+    const res = await fetch("/outcome", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customer_id: call.customer_id, outcome, date: $("date").value,
+                             product_id: outcome === "sold" ? call.product_id : null }) });
+    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+  } catch (e) { toast("Esito non salvato: " + e.message); return; }
+  const first = !state.outcomes[call.customer_id];
+  state.outcomes[call.customer_id] = outcome;
+  let msg = `${call.customer_name}: ${OUTCOMES[outcome].label}`;
+  if (first && REPLACE.has(outcome) && state.plan.backup_calls.length) {
+    const b = state.plan.backup_calls.shift();
+    b.operator = call.operator; b.scheduled_time = null; b.promoted = true;
+    state.plan.calls.push(b);
+    msg += ` · aggiunta riserva ${b.customer_name}`;
+  }
+  state.open = nextOpen(call.customer_id);
+  save(); render(); toast(msg);
+  document.querySelector('[aria-expanded="true"]')?.closest(".call")
+    ?.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+
+function nextOpen(afterId) {
+  const todo = visibleCalls().filter((c) => !state.outcomes[c.customer_id]);
+  return todo.find((c) => c.customer_id !== afterId)?.customer_id ?? null;
+}
+
+// ---------- render ----------
+function visibleCalls(list = state.plan?.calls || []) {
+  const op = $("opFilter").value;
+  return list.filter((c) => (!op || c.operator === op) && (!state.area || c.product_area === state.area))
+    .sort((a, b) => (a.scheduled_time || "99").localeCompare(b.scheduled_time || "99")
+                    || (a.operator || "").localeCompare(b.operator || "")
+                    || a.priority_rank - b.priority_rank);
+}
+
+function render() {
+  const p = state.plan;
+  document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === state.tab));
+  $("areaChips").hidden = state.tab === "catalog";
+  if (state.tab === "catalog") { renderCatalog(); return; }
+  if (!p) {
+    ["kpis", "mix", "excl"].forEach((id) => $(id).hidden = true);
+    $("warnings").innerHTML = "";
+    $("view").innerHTML = `<div class="empty">Imposta l'obiettivo di oggi e premi <b>Genera piano</b>.</div>`;
+    return;
+  }
+  renderOperators(); renderKpis(); renderMix(); renderExcluded();
+  $("setupSummary").textContent = `${p.target_calls} chiamate`;
+  $("warnings").innerHTML = p.warnings.map((w) => `<li>${esc(w)}</li>`).join("");
+
+  const all = visibleCalls();
+  const todo = all.filter((c) => !state.outcomes[c.customer_id]);
+  const done = all.filter((c) => state.outcomes[c.customer_id]);
+  const backup = visibleCalls(p.backup_calls);
+  $("cTodo").textContent = todo.length; $("cDone").textContent = done.length; $("cBackup").textContent = backup.length;
+
+  const list = { todo, done, backup }[state.tab];
+  if (state.tab === "todo" && state.open === null && todo.length) state.open = todo[0].customer_id;
+  $("view").innerHTML = list.length
+    ? `<div class="list">${list.map(card).join("")}</div>`
+    : `<div class="empty">${{ todo: "Nessuna chiamata da fare. Ottimo lavoro!",
+        done: "Nessuna chiamata completata finora.", backup: "Nessuna riserva disponibile." }[state.tab]}</div>`;
+}
+
+function card(c) {
+  const a = AREAS[c.product_area] || { color: "var(--line)", label: "" };
+  const out = state.outcomes[c.customer_id];
+  const open = state.open === c.customer_id;
+  const isBackup = state.tab === "backup";
+  const when = c.scheduled_time || (c.promoted ? "Riserva" : isBackup ? "–" : "Fuori orario");
+  const actions = Object.entries(OUTCOMES)
+    // For advisor products a phone sale is not allowed: offer the appointment only.
+    .filter(([k]) => !(k === "sold" && c.requires_qualified_advisor))
+    .map(([k, o]) => `<button class="btn ${o.cls === "good" ? "good" : o.cls === "bad" && k === "do_not_call" ? "bad" : ""}"
+       data-outcome="${k}" data-id="${esc(c.customer_id)}">${o.label}</button>`).join("");
+  return `
+  <article class="call" style="--area:${a.color}">
+    <button class="head" data-toggle="${esc(c.customer_id)}" aria-expanded="${open}">
+      <div class="time num">${esc(when)}<small>${esc(c.operator || "")}</small></div>
+      <div class="who"><strong>${esc(c.customer_name)}</strong>
+        <span>${esc(c.city || "")}${c.preferred_time ? " · preferisce " + esc(slot(c.preferred_time)) : ""}</span>
+        ${out ? `<br><span class="status ${OUTCOMES[out].cls}">${OUTCOMES[out].label}</span>` : ""}</div>
+      <div class="prod"><b>${esc(c.product_name)}</b><em>${esc(a.label)}${c.requires_qualified_advisor ? " · con consulente" : ""}</em></div>
+      <div class="score num" title="Punteggio di priorità">${c.score.toFixed(2)}<i style="--s:${Math.min(c.score, 1.3) / 1.3 * 100}%"></i></div>
+    </button>
+    ${open ? `
+    <div class="detail">
+      <div class="row">
+        <a class="tel" href="tel:${esc((c.phone || "").replace(/\s/g, ""))}">📞 ${esc(c.phone)}</a>
+        <button class="btn" data-copy="${esc(c.customer_id)}">Copia script</button>
+      </div>
+      <div><h3>Perché chiamare</h3><ul>${c.reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul></div>
+      ${c.alternative_products?.length ? `<div><h3>Se non interessa, proponi</h3>${c.alternative_products.map(esc).join(" · ")}</div>` : ""}
+      ${c.requires_qualified_advisor ? `<div class="advisor"><b>Prodotto con consulente.</b> Obiettivo della chiamata: fissare un appuntamento in ufficio postale. Non concludere al telefono, non promettere rendimenti.</div>` : ""}
+      <div><h3>Script</h3><pre class="script">${esc(c.script)}</pre></div>
+      ${isBackup ? "" : `<div><h3>${out ? "Modifica esito" : "Esito della chiamata"}</h3><div class="outcomes">${actions}</div></div>`}
+    </div>` : ""}
+  </article>`;
+}
+
+const slot = (s) => ({ morning: "mattina", afternoon: "pomeriggio", evening: "sera" }[s] || s);
+
+function renderOperators() {
+  const sel = $("opFilter"), cur = sel.value;
+  const ops = [...new Set(state.plan.calls.map((c) => c.operator).filter(Boolean))];
+  sel.innerHTML = `<option value="">Tutti</option>` + ops.map((o) => `<option>${esc(o)}</option>`).join("");
+  sel.value = ops.includes(cur) ? cur : "";
+}
+
+function renderKpis() {
+  const calls = visibleCalls();
+  const outs = calls.map((c) => state.outcomes[c.customer_id]).filter(Boolean);
+  const n = (k) => outs.filter((o) => o === k).length;
+  const target = $("opFilter").value || state.area ? calls.length : state.plan.target_calls;
+  const done = outs.length;
+  $("kpis").hidden = false;
+  $("kDone").innerHTML = `${done} <span>/ ${target}</span>`;
+  $("kProg").firstElementChild.style.width = (target ? Math.min(100, done / target * 100) : 0) + "%";
+  $("kProg").setAttribute("aria-valuenow", done); $("kProg").setAttribute("aria-valuemax", target);
+  $("kSold").textContent = n("sold"); $("kAppt").textContent = n("appointment"); $("kCb").textContent = n("callback");
+  const reached = outs.filter((o) => !["no_answer", "wrong_number"].includes(o)).length;
+  $("kRate").textContent = reached ? Math.round((n("sold") + n("appointment")) / reached * 100) + "%" : "–";
+}
+
+function renderMix() {
+  const counts = {};
+  state.plan.calls.forEach((c) => counts[c.product_area] = (counts[c.product_area] || 0) + 1);
+  const total = state.plan.calls.length || 1;
+  const entries = Object.keys(AREAS).filter((a) => counts[a]).map((a) => [a, counts[a]]);
+  $("mix").hidden = !entries.length;
+  $("mixbar").innerHTML = entries.map(([a, n]) =>
+    `<i style="flex:${n};background:${AREAS[a].color}" title="${AREAS[a].label}: ${n}"></i>`).join("");
+  $("legend").innerHTML = entries.map(([a, n]) =>
+    `<span><span class="dot" style="background:${AREAS[a].color}"></span>${AREAS[a].label} <b class="num">${n}</b> (${Math.round(n / total * 100)}%)</span>`).join("");
+  $("areaChips").innerHTML = `<button class="chip" data-area="" aria-pressed="${!state.area}">Tutte</button>` +
+    entries.map(([a]) => `<button class="chip" data-area="${a}" aria-pressed="${state.area === a}">
+      <span class="dot" style="background:${AREAS[a].color}"></span>${AREAS[a].label}</button>`).join("");
+}
+
+function renderExcluded() {
+  const s = state.plan.summary, ex = s.excluded;
+  $("excl").hidden = false;
+  $("excl").innerHTML = `<h2>Base clienti</h2>
+    <div><span>Clienti in base</span><b class="num">${s.customers_in_base}</b></div>
+    <div><span>Chiamabili oggi</span><b class="num">${s.eligible_candidates}</b></div>
+    ${Object.entries(ex).map(([k, v]) => `<div><span>Esclusi · ${esc(EXCLUDED[k] || k)}</span><b class="num">${v}</b></div>`).join("")}`;
+}
+
+async function renderCatalog() {
+  if (!products.length) {
+    try { products = (await (await fetch("/products")).json()).products; }
+    catch { $("view").innerHTML = `<div class="empty">Catalogo non disponibile.</div>`; return; }
+  }
+  $("view").innerHTML = Object.entries(AREAS).map(([id, a]) => {
+    const ps = products.filter((p) => p.area === id);
+    if (!ps.length) return "";
+    return `<h2 style="margin:16px 0 8px"><span class="dot" style="background:${a.color}"></span>${a.label}</h2>
+      <div class="catalog">${ps.map((p) => `
+        <div class="pcard" style="--area:${a.color}">
+          <span class="tag">${p.requires_qualified_advisor ? "Con consulente" : "Vendibile al telefono"}</span>
+          <h4>${esc(p.name)}</h4><p>${esc(p.pitch)}</p>
+          ${p.regulatory_note ? `<p style="font-size:12.5px">${esc(p.regulatory_note)}</p>` : ""}
+        </div>`).join("")}</div>`;
+  }).join("");
+}
+
+// ---------- events ----------
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.tab) { state.tab = t.dataset.tab; state.open = null; render(); }
+  else if (t.dataset.area !== undefined && t.classList.contains("chip")) { state.area = t.dataset.area; state.open = null; render(); }
+  else if (t.dataset.toggle) { state.open = state.open === t.dataset.toggle ? "" : t.dataset.toggle; render(); }
+  else if (t.dataset.outcome) {
+    const c = state.plan.calls.find((x) => x.customer_id === t.dataset.id);
+    if (c) recordOutcome(c, t.dataset.outcome);
+  } else if (t.dataset.copy) {
+    const c = [...state.plan.calls, ...state.plan.backup_calls].find((x) => x.customer_id === t.dataset.copy);
+    navigator.clipboard?.writeText(c.script).then(() => toast("Script copiato."), () => toast("Copia non riuscita."));
+  }
+});
+$("generate").addEventListener("click", generate);
+$("opFilter").addEventListener("change", () => { state.open = null; render(); });
+$("date").addEventListener("change", () => {
+  const saved = store.get(key());
+  state.plan = saved?.plan || null; state.outcomes = saved?.outcomes || {}; state.open = null; render();
+});
+
+// ---------- init ----------
+const d = new Date();
+$("date").value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+buildSliders();
+const saved = store.get(key());
+if (saved?.plan) { state.plan = saved.plan; state.outcomes = saved.outcomes || {}; }
+render(); collapseSetupOnMobile();
+</script>
+</body>
+</html>
